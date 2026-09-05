@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import plotly.express as px
 from datetime import datetime
 import re
 
@@ -93,35 +92,19 @@ total_entradas_pix = df_entradas[df_entradas['Tipo de Pagamento'] == 'PIX']['Val
 total_entradas_vr = df_entradas[df_entradas['Tipo de Pagamento'] == 'VR']['Valor_Clean'].sum()
 entradas_salario_pix = 3800.00
 entradas_adiantamento_pix = 1500.00
-total_receita_conta = entradas_salario_pix + entradas_adiantamento_pix
 
 total_saidas_pix = df_saidas[df_saidas['Tipo de Pagamento'] == 'PIX']['Valor_Clean'].sum()
 saidas_salario_pix = df_saidas[(df_saidas['Tipo de Pagamento'] == 'PIX') & (df_saidas['Dia'] < 15)]['Valor_Clean'].sum()
 saidas_adiantamento_pix = df_saidas[(df_saidas['Tipo de Pagamento'] == 'PIX') & (df_saidas['Dia'] >= 15)]['Valor_Clean'].sum()
 
-gasto_gasolina_pix = 150.00
-gasto_gasolina_vr = 0.0
-gasto_lucca_pix = 0.0
-gasto_lucca_vr = 0.0
-
 sobra_liquida = total_entradas_pix - total_saidas_pix
 sobra_salario = entradas_salario_pix - saidas_salario_pix
 sobra_adiantamento = entradas_adiantamento_pix - saidas_adiantamento_pix
 
-# --- SEMÁFORO DA ASSISTENTE ---
-pct_gasto_total = (total_saidas_pix / total_entradas_pix) * 100 if total_entradas_pix > 0 else 100
-dia_atual = datetime.now().day
-
-if pct_gasto_total <= 60 and dia_atual <= 15:
-    cor_semaforo = "#10B981"
-    status_texto = "🟢 Mês sob controle!"
-    assistente_expressao = "Tudo dentro do planejado! 😊"
-else:
-    cor_semaforo = "#10B981" # Mantemos verde para o cliente ver como funciona bem
-    status_texto = "🟢 Mês sob controle!"
-    assistente_expressao = "Tudo dentro do planejado! 😊"
-
-avatar_src = "https://cdn-icons-png.flaticon.com/512/4140/4140048.png" # Avatar genérico executivo para demonstração
+cor_semaforo = "#10B981"
+status_texto = "🟢 Mês sob controle!"
+assistente_expressao = "Tudo dentro do planejado! 😊"
+avatar_src = "https://cdn-icons-png.flaticon.com/512/4140/4140048.png"
 
 # --- HEADER DEMO ---
 with st.container(border=True):
@@ -135,7 +118,7 @@ with st.container(border=True):
         <h2 style='margin:0; padding-top:0px; font-size:1.65rem; font-weight:800; color:#0F172A;'>PAINEL DEMONSTRATIVO <span style='color:#FF5722;'>FINANCEIRO</span></h2>
         <div class="speech-bubble">
             <b style="color:{cor_semaforo}; font-size:1.0rem;">{status_texto}</b> <span style="font-size:0.85rem; color:#64748B;">{assistente_expressao}</span><br>
-            <span style="font-size:0.85rem; color:#334155; display:inline-block; margin-top:2px;">Este é um modelo de vendas com dados 100% fictícios. Adquira sua versão personalizada!</span>
+            <span style="font-size:0.85rem; color:#334155; display:inline-block; margin-top:2px;">Este é um modelo de demonstração com dados fictícios.</span>
         </div>
         <div style='margin-top: 8px;'></div>
         """, unsafe_allow_html=True)
@@ -173,55 +156,24 @@ with st.container(border=True):
             <div style="display:flex; justify-content:space-between; align-items:center;"><span style="color:#0F172A; font-weight:800; font-size:1.2rem;">💰 Sobra:</span><span style="color:#10B981; font-weight:800; font-size:1.5rem;">{fmt_brl(sobra_adiantamento)}</span></div>
         </div>""", unsafe_allow_html=True)
 
-# --- 5. MAPEAMENTO DE DÍVIDAS: DEMO ---
+# --- 5. MAPEAMENTO DE DÍVIDAS ---
 with st.container(border=True):
     st.markdown('<div class="card-header-orange">⚠️ MAPEAMENTO DE DÍVIDAS: ATRASADAS</div>', unsafe_allow_html=True)
     
-    html_card1 = f"""<div style="background:#F8FAFC; padding:18px; border-radius:8px; border:1px solid #CBD5E1; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+    st.markdown("""<div style="background:#F8FAFC; padding:18px; border-radius:8px; border:1px solid #CBD5E1; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
     <div style="flex: 1.2; min-width: 250px;"><span style="font-weight:800; font-size:1.1rem; color:#0F172A;">Cartão de Crédito Banco XYZ</span><br><span style="font-size:0.85rem; color:#64748B;">Credor: <b>Banco XYZ</b></span><br><span style="background:#FEE2E2; color:#FF5722; border:1px solid #FF5722; padding:2px 8px; border-radius:12px; font-weight:700; font-size:0.75rem;">Pendente</span></div>
     <div style="flex: 1; min-width: 150px; font-size:0.95rem; color:#334155;"><b>Valor Total:</b> <span style="color:#0F172A; font-weight:700;">R$ 1.250,00</span><br><span style="font-size:0.85rem; color:#64748B;">Acordo: -</span></div>
-    <div style="flex: 2; min-width: 300px; font-size:0.95rem; color:#FF5722; font-weight:600;">Aguardando acordo / negociação para este credor.</div></div>"""
-    
-    html_card2 = f"""<div style="background:#F8FAFC; padding:18px; border-radius:8px; border:1px solid #CBD5E1; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-    <div style="flex: 1.2; min-width: 250px;"><span style="font-weight:800; font-size:1.1rem; color:#0F172A;">Empréstimo Rápido</span><br><span style="font-size:0.85rem; color:#64748B;">Credor: <b>Financeira ABC</b></span><br><span style="background:#E0F2FE; color:#0284C7; border:1px solid #0284C7; padding:2px 8px; border-radius:12px; font-weight:700; font-size:0.75rem;">Acordado / Parcelado</span></div>
-    <div style="flex: 1; min-width: 150px; font-size:0.95rem; color:#334155;"><b>Valor Total:</b> <span style="color:#0F172A; font-weight:700;">R$ 4.500,00</span><br><span style="font-size:0.85rem; color:#64748B;">Acordo: 24x</span></div>
-    <div style="flex: 1; min-width: 150px; font-size:0.95rem; color:#334155;"><b>Já pago:</b> 5 parcela(s)<br><span style="color:#10B981; font-weight:700;">R$ 937,50</span></div>
-    <div style="flex: 1; min-width: 150px; font-size:0.95rem; color:#334155;"><b>Falta pagar:</b> 19 parcela(s)<br><span style="color:#FF5722; font-weight:700;">R$ 3.562,50</span></div></div>"""
-    
-    st.markdown(html_card1, unsafe_allow_html=True)
-    st.markdown(html_card2, unsafe_allow_html=True)
+    <div style="flex: 2; min-width: 300px; font-size:0.95rem; color:#FF5722; font-weight:600;">Aguardando acordo / negociação para este credor.</div></div>""", unsafe_allow_html=True)
 
-# --- 6. CUSTOS ATIVOS DEMO ---
+# --- 6. CUSTOS ATIVOS ---
 with st.container(border=True):
     st.markdown('<div class="card-header-navy">✅ CUSTOS / PARCELAMENTOS ATIVOS (POR JANELA)</div>', unsafe_allow_html=True)
     c_fix1, c_fix2 = st.columns(2)
     with c_fix1:
         st.markdown("<div style='font-size:1.1rem; font-weight:800; color:#0F172A; margin-bottom:12px; border-bottom:2px solid #10B981; padding-bottom:6px;'>💳 Pagamentos Janela 1</div>", unsafe_allow_html=True)
-        st.markdown("<div style='font-size:0.95rem; font-weight:700; color:#0F172A; background:#E2E8F0; padding:6px 10px; border-radius:6px; margin-bottom:10px;'>🔄 Custos Fixos Contínuos</div>", unsafe_allow_html=True)
         st.markdown("""<div style="background:#F8FAFC; padding:14px; border-radius:8px; border:1px solid #CBD5E1; margin-bottom:10px;">
         <div style="font-weight:800; font-size:1.05rem; color:#0F172A; margin-bottom:4px;">Aluguel</div>
         <div style="font-size:0.9rem; color:#334155; line-height:1.5;">• <b>Valor (R$):</b> <span style="color:#0F172A; font-weight:700;">R$ 1.200,00</span><br>• <b>Custo Fixo Contínuo</b> (Sem data final)</div></div>""", unsafe_allow_html=True)
-        
-        st.markdown("<div style='font-size:0.95rem; font-weight:700; color:#0F172A; background:#E2E8F0; padding:6px 10px; border-radius:6px; margin-bottom:10px; margin-top:15px;'>🔢 Parcelamentos Ativos</div>", unsafe_allow_html=True)
-        st.markdown("""<div style="background:#F8FAFC; padding:14px; border-radius:8px; border:1px solid #CBD5E1; margin-bottom:10px;">
-        <div style="font-weight:800; font-size:1.05rem; color:#0F172A; margin-bottom:4px;">Smartphone Novo</div>
-        <div style="font-size:0.9rem; color:#334155; line-height:1.5;">• <b>Valor (R$):</b> <span style="color:#0F172A; font-weight:700;">R$ 250,00</span><br>• <b>Quantidade de Parcelas:</b> 12x<br>• <b>Início do Pagamento:</b> julho/26<br>• <b>Finaliza em:</b> junho/27<br>• <b>Status no Mês:</b> <span style='color:#10B981; font-weight:700;'>3 de 12 pagas (3/12)</span></div></div>""", unsafe_allow_html=True)
-
     with c_fix2:
         st.markdown("<div style='font-size:1.1rem; font-weight:800; color:#0F172A; margin-bottom:12px; border-bottom:2px solid #0284C7; padding-bottom:6px;'>💳 Pagamentos Janela 2</div>", unsafe_allow_html=True)
         st.write("Sem registros para esta janela neste exemplo.")
-
-# --- 7. INSIGHTS DEMO ---
-st.markdown('<div id="insights"></div>', unsafe_allow_html=True)
-with st.container(border=True):
-    st.markdown('<div class="card-header-navy">💡 INSIGHTS DA SUA ASSISTENTE PESSOAL</div>', unsafe_allow_html=True)
-    st.markdown(f"""
-    <div style="background:#F8FAFC; padding:22px; border-radius:10px; border:1px solid #CBD5E1; border-left:6px solid #0F172A;">
-        <div style="font-size:1.15rem; font-weight:800; color:#0F172A; margin-bottom:10px;">Aqui está sua análise financeira detalhada 🙋‍♀️</div>
-        <div style="font-size:0.95rem; color:#334155; line-height:1.7;">
-            Analisando suas movimentações até hoje, identifiquei que o seu maior volume de despesas está concentrado na categoria <b>Mercado</b>.<br><br>
-            <b>Diagnóstico do Período:</b> 🟢 <b style='color:#10B981;'>Mês sob controle!</b> Estamos no início do mês e os gastos estão bem moderados. Excelente ritmo de economia!<br><br>
-            <i style="color:#64748B; font-size:0.85rem;">Obs: Este é um modelo de vendas. Na versão final, esta análise se atualiza automaticamente lendo a sua planilha do Google Sheets.</i>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
